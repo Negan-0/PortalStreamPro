@@ -1,10 +1,17 @@
-name: Android Build
+name: Manual Android Build
 
+# 🆕 Niente trigger automatico - SOLO manual dispatch
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:  # Attiva manualmente da GitHub UI
+    inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
 
 jobs:
   build:
@@ -23,14 +30,12 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x gradlew
     
-    - name: Build with Gradle
-      run: ./gradlew build -x test
-    
-    - name: Build APK (Debug)
-      run: ./gradlew assembleDebug
+    - name: Build APK (${{ github.event.inputs.build_type }})
+      run: ./gradlew assemble${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
     
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: PortalStreamPro-Debug-APK
-        path: app/build/outputs/apk/debug/*.apk
+        name: PortalStreamPro-${{ github.event.inputs.build_type }}-APK
+        path: app/build/outputs/apk/${{ github.event.inputs.build_type }}/*.apk
+        retention-days: 1
