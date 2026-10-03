@@ -50,14 +50,30 @@ android {
 }
 
 dependencies {
+    // ADAPTIVE BITRATE
+    implementation("androidx.media3:media3-datasource-okhttp:1.2.0")
+
+    // DEVICE DETECTION
+    implementation("com.google.android.gms:play-services-base:18.3.0")
+
     // ExoPlayer
     implementation("androidx.media3:media3-exoplayer:1.2.0")
     implementation("androidx.media3:media3-ui:1.2.0")
     implementation("androidx.media3:media3-cast:1.2.0")
+    implementation("androidx.media3:media3-session:1.2.0")
+
+    // FIRESTORE TV DEVICE DETECTION
+    implementation("com.google.android.tv:tv-provider:1.0.0")
+
+    // NETWORK MONITORING
+    implementation("com.github.chuckerteam.chucker:library:4.0.0")
     
     // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // PICTURE-IN-PICTURE
+    implementation("androidx.window:window:1.2.0")
     
     // Torrent
     implementation("org.libtorrent4j:libtorrent4j:2.1.0")
@@ -101,5 +117,8 @@ dependencies {
     
     // Testing
     testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("io.mockk:mockk-android:1.13.8")
 }
