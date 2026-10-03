@@ -1,0 +1,37 @@
+name: Initialize Gradle Wrapper
+
+on:
+  workflow_dispatch:
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'corretto'
+    
+    - name: Initialize Gradle Wrapper
+      run: |
+        # Scarica Gradle 8.2 e genera il wrapper
+        curl -L -o gradle-8.2-bin.zip https://downloads.gradle-dn.com/distributions/gradle-8.2-bin.zip
+        unzip -q gradle-8.2-bin.zip
+        ./gradle-8.2/bin/gradle wrapper --gradle-version 8.2
+        rm -rf gradle-8.2 gradle-8.2-bin.zip
+        
+        # Verifica i file creati
+        ls -la gradle/wrapper/
+        ls -la gradlew*
+    
+    - name: Commit files
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add gradle/ gradlew gradlew.bat
+        git commit -m "🔧 Initialize Gradle wrapper files" || echo "No changes"
+        git push origin main
