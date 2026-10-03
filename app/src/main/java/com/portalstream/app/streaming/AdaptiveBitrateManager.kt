@@ -1,17 +1,16 @@
 package com.portalstream.app.streaming
 
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.exoplayer.trackselection.TrackSelectionOverride
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import timber.log.Timber
 
 class AdaptiveBitrateManager(
     private val exoPlayer: ExoPlayer,
     private val connectivityManager: ConnectivityManager
 ) {
-    
-    private val trackSelector = exoPlayer.trackSelectionParameters as? DefaultTrackSelector
     
     fun autoSelectQuality() {
         val network = connectivityManager.activeNetwork
@@ -33,6 +32,6 @@ class AdaptiveBitrateManager(
     
     private fun selectQuality(quality: String) {
         // Implementazione selezione qualità
-        timber.log.Timber.d("Selected quality: $quality")
+        Timber.d("Selected quality: $quality")
     }
 }
