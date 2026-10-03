@@ -63,7 +63,7 @@ dependencies {
     implementation("androidx.media3:media3-session:1.2.0")
 
     // FIRESTORE TV DEVICE DETECTION
-    implementation("com.google.android.tv:tv-provider:1.0.0")
+    implementation("androidx.tvprovider:tvprovider:1.0.0")
 
     // NETWORK MONITORING
     implementation("com.github.chuckerteam.chucker:library:4.0.0")
@@ -76,7 +76,7 @@ dependencies {
     implementation("androidx.window:window:1.2.0")
     
     // Torrent
-    implementation("org.libtorrent4j:libtorrent4j:2.1.0")
+    implementation("com.github.aldenml:libtorrent4j:2.1.0")
     
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
