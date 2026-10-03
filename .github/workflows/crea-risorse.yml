@@ -52,8 +52,10 @@ jobs:
         </data-extraction-rules>
         EOF
         
-        # 4. Crea un'icona base temporanea
-        cat << 'EOF' > app/src/main/res/mipmap/ic_launcher.xml
+        # 4. Crea un'icona base temporanea sia in drawable che in mipmap
+        mkdir -p app/src/main/res/drawable
+        
+        cat << 'EOF' > app/src/main/res/drawable/ic_launcher.xml
         <?xml version="1.0" encoding="utf-8"?>
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
             android:width="108dp" android:height="108dp"
@@ -63,8 +65,9 @@ jobs:
         </vector>
         EOF
         
-        # Copia l'icona anche per la versione "round"
-        cp app/src/main/res/mipmap/ic_launcher.xml app/src/main/res/mipmap/ic_launcher_round.xml
+        # Copia l'icona anche in mipmap
+        cp app/src/main/res/drawable/ic_launcher.xml app/src/main/res/mipmap/ic_launcher.xml
+        cp app/src/main/res/drawable/ic_launcher.xml app/src/main/res/mipmap/ic_launcher_round.xml
 
     - name: Salva i file nel progetto
       run: |
