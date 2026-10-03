@@ -1,10 +1,7 @@
-name: Unit Tests
+name: Manual Unit Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:  # 🆕 Solo manual
 
 jobs:
   test:
@@ -21,11 +18,12 @@ jobs:
         cache: gradle
     
     - name: Run Unit Tests
-      run: ./gradlew test
+      run: ./gradlew test --info
     
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: app/build/test-results/
+        retention-days: 1
