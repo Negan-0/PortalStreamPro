@@ -36,7 +36,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- ðŸ  HOME: nuovo punto di ingresso dell'app -->
         <activity
             android:name="com.portalstream.app.ui.home.HomeActivity"
             android:exported="true">
@@ -47,7 +46,11 @@
             </intent-filter>
         </activity>
 
-        <!-- â–¶ï¸ PLAYER: aperto dalla Home o da link magnet -->
+        <!-- ðŸ“‚ Reparto portali -->
+        <activity
+            android:name="com.portalstream.app.ui.home.PortalsActivity"
+            android:exported="false" />
+
         <activity
             android:name="com.portalstream.app.ui.player.PlayerActivity"
             android:resizeableActivity="true"
