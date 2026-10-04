@@ -20,6 +20,9 @@ import com.portalstream.app.utils.DeviceDetector
 import com.portalstream.app.utils.DeviceType
 import timber.log.Timber
 
+private const val DEFAULT_UA =
+    "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 MAG200 stbapp ver: 4.3.1939"
+
 class PlayerActivity : ComponentActivity() {
 
     private lateinit var exoPlayer: ExoPlayer
@@ -45,12 +48,12 @@ class PlayerActivity : ComponentActivity() {
 
         Timber.d("Device: ${deviceDetector.getDeviceInfo()}")
 
+        // User-Agent: quello del portale se impostato, altrimenti default MAG
+        val userAgent = intent.getStringExtra(EXTRA_USER_AGENT)?.takeIf { it.isNotBlank() }
+            ?: DEFAULT_UA
+
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setDefaultRequestProperties(
-                mapOf(
-                    "User-Agent" to "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 MAG200 stbapp ver: 4.3.1939"
-                )
-            )
+            .setDefaultRequestProperties(mapOf("User-Agent" to userAgent))
 
         exoPlayer = Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpDataSourceFactory))
@@ -67,7 +70,6 @@ class PlayerActivity : ComponentActivity() {
         setupUI()
     }
 
-    // Accetta un canale dalla Home; fallback allo stream di test
     private fun loadStreamFromIntent() {
         val streamUrl = intent.getStringExtra(EXTRA_STREAM_URL) ?: TEST_STREAM_URL
         val channelName = intent.getStringExtra(EXTRA_CHANNEL_NAME) ?: "Test Stream"
@@ -136,6 +138,7 @@ class PlayerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_STREAM_URL = "com.portalstream.app.extra.STREAM_URL"
         const val EXTRA_CHANNEL_NAME = "com.portalstream.app.extra.CHANNEL_NAME"
+        const val EXTRA_USER_AGENT = "com.portalstream.app.extra.USER_AGENT"
         const val TEST_STREAM_URL = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
     }
 }
