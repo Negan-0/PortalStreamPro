@@ -94,7 +94,6 @@ class HomeActivity : ComponentActivity() {
             }
         }
 
-        // Auto-carica se aperta da "I miei portali"
         LaunchedEffect(Unit) {
             intent.getStringExtra(EXTRA_PORTAL_URL)?.let { loadPlaylist(it) }
         }
@@ -107,7 +106,6 @@ class HomeActivity : ComponentActivity() {
             Text("PortalStream Pro", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
 
-            // FIX: URL ora leggibile (2 righe, font ridotto)
             OutlinedTextField(
                 value = url,
                 onValueChange = { url = it },
@@ -119,33 +117,37 @@ class HomeActivity : ComponentActivity() {
             )
             Spacer(Modifier.height(8.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(
-                    onClick = { loadPlaylist(url.trim()) },
-                    enabled = !loading && url.isNotBlank()
-                ) {
-                    Text(stringResource(R.string.home_add_portal))
-                }
-                Spacer(Modifier.width(6.dp))
+            // Riga 1: azione principale
+            Button(
+                onClick = { loadPlaylist(url.trim()) },
+                enabled = !loading && url.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.home_add_portal))
+            }
+            Spacer(Modifier.height(6.dp))
+
+            // Riga 2: azioni secondarie (niente piu overflow)
+            Row {
                 OutlinedButton(
                     onClick = {
                         val target = url.trim()
                         if (target.isNotBlank()) {
                             val portal = store.add(target)
-                            info = "Salvato come portale #${portal.id} • ${portal.type.label}"
+                            info = "Salvato come portale #${portal.id} - ${portal.type.label}"
                         }
                     },
                     enabled = url.isNotBlank()
                 ) {
                     Text("Salva")
                 }
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(8.dp))
                 OutlinedButton(onClick = {
                     startActivity(Intent(this@HomeActivity, PortalsActivity::class.java))
                 }) {
                     Text("Portali")
                 }
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(8.dp))
                 OutlinedButton(onClick = {
                     playStream(PlayerActivity.TEST_STREAM_URL, "Test Stream")
                 }) {
@@ -173,7 +175,7 @@ class HomeActivity : ComponentActivity() {
 
             error?.let { err ->
                 Spacer(Modifier.height(8.dp))
-                Text("⚠️ $err", color = MaterialTheme.colorScheme.error)
+                Text("Attenzione: $err", color = MaterialTheme.colorScheme.error)
             }
 
             if (channels.isNotEmpty()) {
@@ -182,7 +184,6 @@ class HomeActivity : ComponentActivity() {
                     text = stringResource(R.string.playlist_channels_count, channels.size),
                     style = MaterialTheme.typography.titleMedium
                 )
-                // FIX: lista con peso — titolo e campi restano sempre visibili
                 LazyColumn(modifier = Modifier.weight(1f).padding(top = 8.dp)) {
                     items(channels, key = { it.url }) { channel ->
                         Card(
