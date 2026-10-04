@@ -62,19 +62,21 @@ class PlayerActivity : ComponentActivity() {
         adaptiveBitrate = AdaptiveBitrateManager(exoPlayer, connectivityManager)
         adaptiveBitrate.autoSelectQuality()
 
-        // ðŸŽ¬ STREAM DI TEST HLS multi-qualita (1080p/720p/480p)
-        loadTestStream()
+        loadStreamFromIntent()
 
         setupUI()
     }
 
-    private fun loadTestStream() {
-        val testStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-        val mediaItem = MediaItem.fromUri(testStreamUrl)
+    // Accetta un canale dalla Home; fallback allo stream di test
+    private fun loadStreamFromIntent() {
+        val streamUrl = intent.getStringExtra(EXTRA_STREAM_URL) ?: TEST_STREAM_URL
+        val channelName = intent.getStringExtra(EXTRA_CHANNEL_NAME) ?: "Test Stream"
+        Timber.d("Riproduco: $channelName -> $streamUrl")
+
+        val mediaItem = MediaItem.fromUri(streamUrl)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
-        Timber.d("Caricato stream di test: $testStreamUrl")
     }
 
     private fun showCrashScreen(e: Exception) {
@@ -129,5 +131,11 @@ class PlayerActivity : ComponentActivity() {
         if (::exoPlayer.isInitialized) {
             exoPlayer.release()
         }
+    }
+
+    companion object {
+        const val EXTRA_STREAM_URL = "com.portalstream.app.extra.STREAM_URL"
+        const val EXTRA_CHANNEL_NAME = "com.portalstream.app.extra.CHANNEL_NAME"
+        const val TEST_STREAM_URL = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
     }
 }
