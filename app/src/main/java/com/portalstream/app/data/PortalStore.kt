@@ -5,8 +5,7 @@ import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 
-// Portali salvati in JSON interno. I campi nuovi usano opt* con default:
-// i portali salvati con versioni vecce dell'app continuano a funzionare.
+// Portali in JSON interno. Campi nuovi con opt* + default: retrocompatibile.
 class PortalStore(context: Context) {
 
     private val file = File(context.filesDir, "portals.json")
@@ -29,7 +28,12 @@ class PortalStore(context: Context) {
                         useVpn = o.optBoolean("vpn", false),
                         profile = o.optString("profile", ""),
                         useCustomUserAgent = o.optBoolean("customUa", false),
-                        userAgent = o.optString("ua", "")
+                        userAgent = o.optString("ua", ""),
+                        server = o.optString("server", ""),
+                        username = o.optString("user", ""),
+                        password = o.optString("pass", ""),
+                        streamFormat = o.optString("format", "m3u8"),
+                        forceStreamLink = o.optBoolean("forceLink", false)
                     )
                 )
             }
@@ -39,18 +43,13 @@ class PortalStore(context: Context) {
         }
     }
 
-    fun add(url: String): Portal {
+    // Assegna la numerazione progressiva. Nome vuoto = viene mostrato solo il numero.
+    fun add(portal: Portal): Portal {
         val portals = load().toMutableList()
-        val nextId = (portals.maxOfOrNull { it.id } ?: 0) + 1
-        val portal = Portal(
-            id = nextId,
-            name = url,
-            type = PortalType.detect(url),
-            url = url
-        )
-        portals.add(portal)
+        val assigned = portal.copy(id = (portals.maxOfOrNull { it.id } ?: 0) + 1)
+        portals.add(assigned)
         write(portals)
-        return portal
+        return assigned
     }
 
     fun update(portal: Portal) {
@@ -75,6 +74,11 @@ class PortalStore(context: Context) {
                     put("profile", p.profile)
                     put("customUa", p.useCustomUserAgent)
                     put("ua", p.userAgent)
+                    put("server", p.server)
+                    put("user", p.username)
+                    put("pass", p.password)
+                    put("format", p.streamFormat)
+                    put("forceLink", p.forceStreamLink)
                 }
             )
         }
