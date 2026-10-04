@@ -16,12 +16,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,9 +34,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.portalstream.app.R
+import com.portalstream.app.data.PortalStore
 import com.portalstream.app.domain.model.Channel
 import com.portalstream.app.network.PlaylistDownloader
 import com.portalstream.app.streaming.M3UParser
@@ -45,9 +50,11 @@ import timber.log.Timber
 class HomeActivity : ComponentActivity() {
 
     private val downloader = PlaylistDownloader()
+    private lateinit var store: PortalStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        store = PortalStore(this)
         setContentView(ComposeView(this).apply {
             setContent {
                 MaterialTheme {
@@ -63,15 +70,18 @@ class HomeActivity : ComponentActivity() {
         var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
         var loading by remember { mutableStateOf(false) }
         var error by remember { mutableStateOf<String?>(null) }
+        var info by remember { mutableStateOf<String?>(null) }
         val scope = rememberCoroutineScope()
 
-        fun loadPlaylist() {
-            if (url.isBlank() || loading) return
+        fun loadPlaylist(target: String) {
+            if (target.isBlank() || loading) return
+            url = target
             loading = true
             error = null
+            info = null
             scope.launch {
                 try {
-                    val content = downloader.download(url.trim())
+                    val content = downloader.download(target)
                     val parsed = M3UParser.parse(content)
                     channels = parsed
                     if (parsed.isEmpty()) error = getString(R.string.playlist_no_channels)
@@ -84,39 +94,72 @@ class HomeActivity : ComponentActivity() {
             }
         }
 
+        // Auto-carica se aperta da "I miei portali"
+        LaunchedEffect(Unit) {
+            intent.getStringExtra(EXTRA_PORTAL_URL)?.let { loadPlaylist(it) }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
             Text("PortalStream Pro", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
+            // FIX: URL ora leggibile (2 righe, font ridotto)
             OutlinedTextField(
                 value = url,
                 onValueChange = { url = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.config_url)) },
-                placeholder = { Text(stringResource(R.string.config_url_hint)) },
-                singleLine = true,
+                textStyle = TextStyle(fontSize = 13.sp),
+                maxLines = 2,
                 enabled = !loading
             )
             Spacer(Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(
-                    onClick = { loadPlaylist() },
+                    onClick = { loadPlaylist(url.trim()) },
                     enabled = !loading && url.isNotBlank()
                 ) {
                     Text(stringResource(R.string.home_add_portal))
                 }
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(6.dp))
                 OutlinedButton(
-                    onClick = { playStream(PlayerActivity.TEST_STREAM_URL, "Test Stream") },
-                    enabled = !loading
+                    onClick = {
+                        val target = url.trim()
+                        if (target.isNotBlank()) {
+                            val portal = store.add(target)
+                            info = "Salvato come portale #${portal.id} • ${portal.type.label}"
+                        }
+                    },
+                    enabled = url.isNotBlank()
                 ) {
-                    Text("ЁЯОм Test")
+                    Text("Salva")
                 }
+                Spacer(Modifier.width(6.dp))
+                OutlinedButton(onClick = {
+                    startActivity(Intent(this@HomeActivity, PortalsActivity::class.java))
+                }) {
+                    Text("Portali")
+                }
+                Spacer(Modifier.width(6.dp))
+                OutlinedButton(onClick = {
+                    playStream(PlayerActivity.TEST_STREAM_URL, "Test Stream")
+                }) {
+                    Text("Test")
+                }
+            }
+
+            info?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             if (loading) {
@@ -130,23 +173,26 @@ class HomeActivity : ComponentActivity() {
 
             error?.let { err ->
                 Spacer(Modifier.height(8.dp))
-                Text("тЪая╕П $err", color = MaterialTheme.colorScheme.error)
+                Text("⚠️ $err", color = MaterialTheme.colorScheme.error)
             }
 
             if (channels.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.playlist_channels_count, channels.size),
                     style = MaterialTheme.typography.titleMedium
                 )
-                Spacer(Modifier.height(8.dp))
-                LazyColumn {
+                // FIX: lista con peso — titolo e campi restano sempre visibili
+                LazyColumn(modifier = Modifier.weight(1f).padding(top = 8.dp)) {
                     items(channels, key = { it.url }) { channel ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
-                                .clickable { playStream(channel.url, channel.name) }
+                                .clickable { playStream(channel.url, channel.name) },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         ) {
                             Column(Modifier.padding(12.dp)) {
                                 Text(
@@ -176,5 +222,9 @@ class HomeActivity : ComponentActivity() {
                 putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, name)
             }
         )
+    }
+
+    companion object {
+        const val EXTRA_PORTAL_URL = "com.portalstream.app.extra.PORTAL_URL"
     }
 }
