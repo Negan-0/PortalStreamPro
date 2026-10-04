@@ -5,7 +5,8 @@ import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 
-// Salva i portali in un file JSON interno: numerazione progressiva garantita dall'id
+// Portali salvati in JSON interno. I campi nuovi usano opt* con default:
+// i portali salvati con versioni vecce dell'app continuano a funzionare.
 class PortalStore(context: Context) {
 
     private val file = File(context.filesDir, "portals.json")
@@ -23,7 +24,12 @@ class PortalStore(context: Context) {
                         name = o.optString("name"),
                         type = runCatching { PortalType.valueOf(o.getString("type")) }
                             .getOrDefault(PortalType.UNKNOWN),
-                        url = o.getString("url")
+                        url = o.optString("url"),
+                        macAddress = o.optString("mac", ""),
+                        useVpn = o.optBoolean("vpn", false),
+                        profile = o.optString("profile", ""),
+                        useCustomUserAgent = o.optBoolean("customUa", false),
+                        userAgent = o.optString("ua", "")
                     )
                 )
             }
@@ -47,6 +53,10 @@ class PortalStore(context: Context) {
         return portal
     }
 
+    fun update(portal: Portal) {
+        write(load().map { if (it.id == portal.id) portal else it })
+    }
+
     fun delete(id: Int) {
         write(load().filterNot { it.id == id })
     }
@@ -60,6 +70,11 @@ class PortalStore(context: Context) {
                     put("name", p.name)
                     put("type", p.type.name)
                     put("url", p.url)
+                    put("mac", p.macAddress)
+                    put("vpn", p.useVpn)
+                    put("profile", p.profile)
+                    put("customUa", p.useCustomUserAgent)
+                    put("ua", p.userAgent)
                 }
             )
         }
