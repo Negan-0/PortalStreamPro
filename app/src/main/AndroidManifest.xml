@@ -36,8 +36,9 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- HUB PRINCIPALE: l'app si apre qui -->
         <activity
-            android:name="com.portalstream.app.ui.home.HomeActivity"
+            android:name="com.portalstream.app.ui.home.PortalsActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -46,11 +47,12 @@
             </intent-filter>
         </activity>
 
-        <!-- ðŸ“‚ Reparto portali -->
+        <!-- Lista canali del portale selezionato -->
         <activity
-            android:name="com.portalstream.app.ui.home.PortalsActivity"
+            android:name="com.portalstream.app.ui.channels.ChannelsActivity"
             android:exported="false" />
 
+        <!-- Player -->
         <activity
             android:name="com.portalstream.app.ui.player.PlayerActivity"
             android:resizeableActivity="true"
