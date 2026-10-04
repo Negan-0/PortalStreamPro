@@ -29,5 +29,10 @@ data class Portal(
     val useVpn: Boolean = false,
     val profile: String = "",
     val useCustomUserAgent: Boolean = false,
-    val userAgent: String = ""
+    val userAgent: String = "",
+    val server: String = "",
+    val username: String = "",
+    val password: String = "",
+    val streamFormat: String = "m3u8",
+    val forceStreamLink: Boolean = false
 )
