@@ -63,11 +63,17 @@ class PortalsActivity : ComponentActivity() {
             Spacer(Modifier.height(16.dp))
 
             if (portals.isEmpty()) {
-                Text(
-                    "Nessun portale salvato.
-Torna alla Home, inserisci un URL e premi \u201CSalva\u201D.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Column {
+                    Text(
+                        text = "Nessun portale salvato.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Torna alla Home, inserisci un URL e premi il pulsante Salva.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             } else {
                 LazyColumn {
                     items(portals, key = { it.id }) { portal ->
