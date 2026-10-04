@@ -22,7 +22,12 @@ enum class PortalType(val label: String) {
 
 data class Portal(
     val id: Int,
-    val name: String,
-    val type: PortalType,
-    val url: String
+    val name: String = "",
+    val type: PortalType = PortalType.UNKNOWN,
+    val url: String = "",
+    val macAddress: String = "",
+    val useVpn: Boolean = false,
+    val profile: String = "",
+    val useCustomUserAgent: Boolean = false,
+    val userAgent: String = ""
 )
