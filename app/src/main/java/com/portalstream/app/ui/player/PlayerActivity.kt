@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.media3.common.MediaItem
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.ExoPlayer.Builder
@@ -20,23 +21,30 @@ import com.portalstream.app.utils.DeviceType
 import timber.log.Timber
 
 class PlayerActivity : ComponentActivity() {
-    
+
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var pipManager: PipManager
     private lateinit var adaptiveBitrate: AdaptiveBitrateManager
     private lateinit var deviceDetector: DeviceDetector
     private lateinit var networkSniffer: NetworkSniffer
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Inizializza gli strumenti
+
+        try {
+            initApp()
+        } catch (e: Exception) {
+            Timber.e(e, "Crash in onCreate")
+            showCrashScreen(e)
+        }
+    }
+
+    private fun initApp() {
         deviceDetector = DeviceDetector(this)
         networkSniffer = NetworkSniffer(this)
-        
+
         Timber.d("Device: ${deviceDetector.getDeviceInfo()}")
-        
-        // Configura il factory HTTP per Media3 con User-Agent custom
+
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setDefaultRequestProperties(
                 mapOf(
@@ -44,27 +52,44 @@ class PlayerActivity : ComponentActivity() {
                 )
             )
 
-        // ExoPlayer con MediaSourceFactory custom
         exoPlayer = Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpDataSourceFactory))
             .build()
-        
+
         pipManager = PipManager(this, exoPlayer)
-        
-        // Corretto il primo parametro: passa exoPlayer invece di 'this' (PlayerActivity)
+
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
         adaptiveBitrate = AdaptiveBitrateManager(exoPlayer, connectivityManager)
-        
-        // Auto-seleziona qualità in base alla velocità di rete
         adaptiveBitrate.autoSelectQuality()
-        
-        // Setup UI in base al device
+
+        // ðŸŽ¬ STREAM DI TEST HLS multi-qualita (1080p/720p/480p)
+        loadTestStream()
+
         setupUI()
     }
-    
+
+    private fun loadTestStream() {
+        val testStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+        val mediaItem = MediaItem.fromUri(testStreamUrl)
+        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
+        Timber.d("Caricato stream di test: $testStreamUrl")
+    }
+
+    private fun showCrashScreen(e: Exception) {
+        setContentView(ComposeView(this).apply {
+            setContent {
+                MaterialTheme {
+                    CrashScreen(e)
+                }
+            }
+        })
+    }
+
     private fun setupUI() {
         val device = deviceDetector.detectDevice()
-        
+
         setContentView(ComposeView(this).apply {
             setContent {
                 MaterialTheme {
@@ -84,21 +109,25 @@ class PlayerActivity : ComponentActivity() {
             }
         })
     }
-    
+
     override fun onPause() {
         super.onPause()
-        if (!pipManager.isInPipMode()) {
+        if (::exoPlayer.isInitialized && ::pipManager.isInitialized && !pipManager.isInPipMode()) {
             exoPlayer.pause()
         }
     }
-    
+
     override fun onResume() {
         super.onResume()
-        exoPlayer.play()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.play()
+        }
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        exoPlayer.release()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
     }
 }
